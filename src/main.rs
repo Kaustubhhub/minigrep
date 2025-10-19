@@ -6,12 +6,12 @@ fn main() {
     // dbg!(&args);
 
     let config_data = Config::build(&args).unwrap_or_else(|err| {
-        println!("Error parsing arguements : {}", err);
+        eprintln!("Error parsing arguements : {}", err);
         process::exit(1);
     });
 
     if let Err(e) = run(config_data) {
-        println!("Application error : {}", e);
+        eprintln!("Application error : {}", e);
         process::exit(1);
     };
 }
