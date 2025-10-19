@@ -1,12 +1,40 @@
-use std::{env, fs};
+use std::{env, error::Error, fs, process};
 fn main() {
     let args: Vec<String> = env::args().collect();
-    dbg!(&args);
+    // dbg!(&args);
 
-    let query = &args[1];
-    let file_path = &args[2];
+    let config_data = Config::build(&args).unwrap_or_else(|err| {
+        println!("Error parsing arguements : {}", err);
+        process::exit(1);
+    });
 
-    let content = fs::read_to_string(file_path).expect("unable to read from this path");
+    if let Err(e) = run(config_data) {
+        println!("Application error : {}", e);
+        process::exit(1);
+    };
+}
 
-    println!("{:?}", {content});
+fn run(config: Config) -> Result<(), Box<dyn Error>> {
+    let content = fs::read_to_string(config.file_path)?;
+    println!("content : {}", content);
+    println!("content : {}", config.query);
+    Ok(())
+}
+
+struct Config {
+    query: String,
+    file_path: String,
+}
+
+impl Config {
+    fn build(args: &[String]) -> Result<Config, &'static str> {
+        if args.len() != 3 {
+            return Err("usage : cargo run -- <query> <file_path>");
+        }
+        let new_config: Config = Config {
+            query: args[1].clone(),
+            file_path: args[2].clone(),
+        };
+        Ok(new_config)
+    }
 }
