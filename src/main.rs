@@ -2,10 +2,15 @@ use std::{env, error::Error, fs, process};
 
 use minigrep::{search, search_case_insensitive};
 fn main() {
-    let args: Vec<String> = env::args().collect();
-    // dbg!(&args);
+    // let args: Vec<String> = env::args().collect();
+    // // dbg!(&args);
 
-    let config_data = Config::build(&args).unwrap_or_else(|err| {
+    // let config_data = Config::build(&args).unwrap_or_else(|err| {
+    //     eprintln!("Error parsing arguements : {}", err);
+    //     process::exit(1);
+    // });
+
+    let config_data = Config::build(env::args()).unwrap_or_else(|err| {
         eprintln!("Error parsing arguements : {}", err);
         process::exit(1);
     });
@@ -39,17 +44,23 @@ struct Config {
 }
 
 impl Config {
-    fn build(args: &[String]) -> Result<Config, &'static str> {
+    fn build(mut args: impl Iterator<Item = String>) -> Result<Config, &'static str> {
         // println!("{:?}", args);
-        if args.len() < 3 {
-            return Err("usage : cargo run -- <query> <file_path> <ignore_case>");
-        }
+        args.next();
+
+        let query = match args.next() {
+            Some(query) => query,
+            None => return Err("Didn't find the query"),
+        };
+        let file_path = match args.next() {
+            Some(file_path) => file_path,
+            None => return Err("Didn't find the file path"),
+        };
 
         let ignore_case = env::var("IGNORE_CASE").is_ok();
-
         Ok(Config {
-            query: args[1].clone(),
-            file_path: args[2].clone(),
+            query,
+            file_path,
             ignore_case,
         })
     }
